@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GajiFlow — Salary Budget Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-light:#E1F5EE;--green-dark:#085041;
+  --amber:#BA7517;--amber-light:#FAEEDA;--amber-dark:#633806;
+  --red:#D85A30;--red-light:#FAECE7;--red-dark:#4A1B0C;
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#042C53;
+  --purple:#534AB7;--purple-light:#EEEDFE;--purple-dark:#26215C;
+  --font:'Plus Jakarta Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);background:#f7f8f5;color:#1a1a1a;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* SHELL */
+.shell{max-width:980px;margin:0 auto;padding:24px 16px 80px;display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:720px){
+  .shell{padding:40px 32px 80px;grid-template-columns:1fr 1fr;grid-template-areas:"hdr hdr" "sal sal" "mod mod" "cat chart" "ins ins"}
+  .s-hdr{grid-area:hdr}.s-sal{grid-area:sal}.s-mod{grid-area:mod}
+  .s-cat{grid-area:cat}.s-chart{grid-area:chart}.s-ins{grid-area:ins}
+}
+
+/* CARD */
+.card{background:#fff;border:1px solid #e8e8e2;border-radius:14px;padding:18px 20px}
+.sec-lbl{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#aaa;margin-bottom:10px}
+
+/* HEADER */
+.s-hdr{display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:26px;font-weight:700;letter-spacing:-.8px}
+.logo span{color:var(--green)}
+.tagline{font-size:13px;color:#888;margin-top:2px}
+.badge{font-family:var(--mono);font-size:13px;font-weight:500;padding:6px 16px;border-radius:999px;border:1.5px solid;transition:all .2s}
+.badge.ok  {background:var(--green-light);border-color:var(--green);color:var(--green-dark)}
+.badge.warn{background:var(--amber-light);border-color:var(--amber);color:var(--amber-dark)}
+.badge.over{background:var(--red-light)  ;border-color:var(--red)  ;color:var(--red-dark)}
+
+/* SALARY */
+.sal-row{display:flex;align-items:center;gap:10px}
+.rm{font-size:28px;font-weight:700;color:var(--green);font-family:var(--mono)}
+#salInp{font-family:var(--mono);font-size:28px;font-weight:500;border:none;background:transparent;color:#1a1a1a;width:100%;outline:none;-moz-appearance:textfield}
+#salInp::-webkit-outer-spin-button,#salInp::-webkit-inner-spin-button{-webkit-appearance:none}
+#salInp::placeholder{color:#ccc}
+.prog-track{height:5px;background:#f0f0ea;border-radius:3px;margin-top:14px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .25s,background .25s}
+
+/* MODE TABS */
+.s-mod{display:flex;gap:8px}
+.tab{flex:1;padding:10px;border:1.5px solid #e0e0d8;border-radius:8px;background:#fff;font-family:var(--font);font-size:13px;font-weight:600;color:#888;cursor:pointer;transition:all .15s}
+.tab:hover{border-color:var(--green);color:var(--green)}
+.tab.active{background:var(--green);border-color:var(--green);color:#fff}
+
+/* RULE PICKER (inside smart mode) */
+.rule-picker{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.rule-card{border:1.5px solid #e8e8e2;border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;background:#fafaf8}
+.rule-card:hover{border-color:var(--green)}
+.rule-card.selected{border-color:var(--green);background:var(--green-light)}
+.rule-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.rule-name{font-size:14px;font-weight:700;color:#1a1a1a}
+.rule-tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px;letter-spacing:.4px}
+.rule-tag.beginner{background:#E1F5EE;color:#085041}
+.rule-tag.moderate{background:#FAEEDA;color:#633806}
+.rule-tag.aggressive{background:#FAECE7;color:#4A1B0C}
+.rule-desc{font-size:12px;color:#666;line-height:1.5;margin-bottom:6px}
+.rule-pills{display:flex;flex-wrap:wrap;gap:4px}
+.rule-pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px}
+.rule-ref{font-size:11px;color:#aaa;margin-top:6px}
+.rule-ref a{color:var(--blue);text-decoration:none}
+.rule-ref a:hover{text-decoration:underline}
+
+/* CATEGORIES */
+.cat-list{display:flex;flex-direction:column;gap:8px}
+.cat-item{background:#fafaf8;border:1px solid #eeeee8;border-radius:8px;padding:10px 12px;transition:border-color .15s}
+.cat-item:hover{border-color:#ccc}
+.cat-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cat-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;cursor:pointer;border:2px solid rgba(0,0,0,.1);transition:transform .1s}
+.cat-dot:hover{transform:scale(1.25)}
+.cat-name-inp{flex:1;font-family:var(--font);font-size:13px;font-weight:600;border:none;border-bottom:1.5px solid transparent;background:transparent;color:#1a1a1a;outline:none;min-width:0;padding-bottom:1px;transition:border-color .15s}
+.cat-name-inp:not([readonly]):focus{border-bottom-color:var(--green)}
+.cat-name-inp[readonly]{pointer-events:none;color:#555}
+.cat-rm{font-family:var(--mono);font-size:12px;font-weight:500;color:#888;white-space:nowrap}
+.cat-del{background:none;border:none;cursor:pointer;font-size:18px;color:#ccc;line-height:1;padding:0 2px;transition:color .15s;display:flex;align-items:center}
+.cat-del:hover{color:var(--red)}
+.cat-bot{display:flex;align-items:center;gap:8px}
+.cat-slider{flex:1;height:4px;cursor:pointer}
+.cat-slider:disabled{opacity:.4;cursor:not-allowed}
+.pct-box{font-family:var(--mono);font-size:12px;font-weight:500;width:44px;text-align:center;border:1px solid #e0e0d8;border-radius:6px;background:#fff;color:#1a1a1a;padding:3px 4px;outline:none;-moz-appearance:textfield}
+.pct-box::-webkit-outer-spin-button,.pct-box::-webkit-inner-spin-button{-webkit-appearance:none}
+.pct-box:not([readonly]):focus{border-color:var(--green)}
+.pct-box[readonly]{background:#f5f5f0;color:#888}
+.pct-sym{font-size:11px;color:#bbb}
+.add-row{display:flex;gap:8px;margin-top:10px}
+.add-inp{flex:1;font-family:var(--font);font-size:13px;border:1px dashed #ccc;border-radius:8px;background:#fff;padding:8px 12px;outline:none;color:#1a1a1a}
+.add-inp:focus{border-color:var(--green);border-style:solid}
+.add-btn{font-family:var(--font);font-size:13px;font-weight:600;padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.add-btn:hover{opacity:.85}
+.empty{text-align:center;padding:20px;color:#bbb;font-size:13px}
+
+/* CHART */
+.chart-wrap{position:relative;width:100%;height:220px}
+.legend-list{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.legend-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.legend-name{flex:1;color:#666}
+.legend-pct{font-family:var(--mono);color:#bbb;font-size:11px;min-width:28px;text-align:right}
+.legend-rm{font-family:var(--mono);font-weight:500;min-width:80px;text-align:right}
+
+/* INSIGHTS */
+.ins-grid{display:grid;grid-template-columns:1fr;gap:8px}
+@media(min-width:720px){.ins-grid{grid-template-columns:1fr 1fr}}
+.ins{border-radius:8px;padding:12px 14px;border-width:1px;border-style:solid;font-size:13px;line-height:1.5}
+.ins.ok    {background:var(--green-light);border-color:#5DCAA5;color:var(--green-dark)}
+.ins.warn  {background:var(--amber-light);border-color:#FAC775;color:var(--amber-dark)}
+.ins.danger{background:var(--red-light)  ;border-color:#F0997B;color:var(--red-dark)}
+.ins-head{font-weight:700;margin-bottom:3px}
+
+/* COLOR PICKER */
+.cpop{display:none;position:fixed;z-index:999;background:#fff;border:1px solid #e0e0d8;border-radius:8px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,.12);flex-wrap:wrap;gap:6px;width:156px}
+.cpop.open{display:flex}
+.csw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .1s}
+.csw:hover{transform:scale(1.2)}
+.csw.sel{border-color:#1a1a1a}
+
+/* ACTIVE RULE BANNER */
+.active-rule-banner{background:var(--green-light);border:1px solid #5DCAA5;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--green-dark);line-height:1.5}
+.arb-head{font-weight:700;font-size:13px;margin-bottom:2px}
+.arb-ref a{color:var(--green-dark);font-weight:600}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- HEADER -->
+  <div class="s-hdr">
+    <div>
+      <div class="logo">Gaji<span>Flow</span></div>
+      <div class="tagline">Budget your salary in seconds</div>
+    </div>
+    <div class="badge ok" id="badge">100%</div>
+  </div>
+
+  <!-- SALARY -->
+  <div class="card s-sal">
+    <div class="sec-lbl">Monthly salary (after EPF & SOCSO)</div>
+    <div class="sal-row">
+      <span class="rm">RM</span>
+      <input id="salInp" type="number" min="0" placeholder="5000" value="5000"/>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+  </div>
+
+  <!-- MODE TABS -->
+  <div class="s-mod">
+    <button class="tab active" id="tabManual" onclick="setMode('manual')">Manual — I'll set it myself</button>
+    <button class="tab" id="tabSmart" onclick="setMode('smart')">Smart — suggest for me</button>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="card s-cat">
+    <div class="sec-lbl">Your categories</div>
+
+    <!-- SMART: rule picker -->
+    <div id="rulePicker" style="display:none">
+      <div class="rule-picker" id="ruleList"></div>
+    </div>
+
+    <!-- Active rule banner (smart mode only) -->
+    <div id="ruleBanner" style="display:none"></div>
+
+    <div class="cat-list" id="catList"></div>
+    <div class="add-row" id="addRow">
+      <input class="add-inp" id="newName" placeholder="e.g. Car loan, Rent, TNB bill..."/>
+      <button class="add-btn" onclick="addCat()">+ Add</button>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="card s-chart">
+    <div class="sec-lbl">Breakdown</div>
+    <div class="chart-wrap"><canvas id="pie" role="img" aria-label="Doughnut chart of salary allocation"></canvas></div>
+    <div class="legend-list" id="legend"></div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="s-ins" id="insSection" style="display:none">
+    <div class="ins-grid" id="insGrid"></div>
+  </div>
+
+</div>
+
+<!-- COLOR PICKER -->
+<div class="cpop" id="cpop"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/* ── PALETTE ── */
+const PAL = ['#1D9E75','#378ADD','#D4537E','#7F77DD','#BA7517','#639922','#D85A30','#5DCAA5','#F0997B','#9FE1CB','#FAC775','#AFA9EC'];
+
+/* ── FINANCIAL RULES ── */
+const RULES = [
+  {
+    id: '503020',
+    name: '50 / 30 / 20 Rule',
+    level: 'beginner',
+    levelLabel: 'Beginner-friendly',
+    desc: 'The classic rule by Elizabeth Warren: half for needs, 30% for lifestyle, 20% for savings. Best for those just starting to budget.',
+    ref: { label: 'Warren & Tyagi — All Your Worth (2005)', url: 'https://www.kwsp.gov.my/en/w/article/50-30-20-rule' },
+    cats: [
+      { name: 'Essentials (Needs)',  pct: 50, color: '#1D9E75' },
+      { name: 'Lifestyle (Wants)',   pct: 30, color: '#378ADD' },
+      { name: 'Savings & Investment',pct: 20, color: '#639922' },
+    ],
+    pills: [
+      { label: '50% Needs',    bg: '#E1F5EE', color: '#085041' },
+      { label: '30% Wants',    bg: '#E6F1FB', color: '#042C53' },
+      { label: '20% Savings',  bg: '#EAF3DE', color: '#173404' },
+    ]
+  },
+  {
+    id: '702010',
+    name: '70 / 20 / 10 Rule',
+    level: 'moderate',
+    levelLabel: 'High cost of living',
+    desc: 'For Malaysians where essentials eat up more than half of income. 70% covers all spending, 20% savings, 10% enjoyment or charity.',
+    ref: { label: 'Adapted for Malaysia — RinggitPlus & KWSP guidelines', url: 'https://www.press.com.my/finance/does-50-30-20-budget-still-work/' },
+    cats: [
+      { name: 'All Expenses',        pct: 70, color: '#1D9E75' },
+      { name: 'Savings & Investment', pct: 20, color: '#639922' },
+      { name: 'Enjoyment / Charity',  pct: 10, color: '#D4537E' },
+    ],
+    pills: [
+      { label: '70% Living',   bg: '#E1F5EE', color: '#085041' },
+      { label: '20% Savings',  bg: '#EAF3DE', color: '#173404' },
+      { label: '10% Fun/Give', bg: '#FBEAF0', color: '#4B1528' },
+    ]
+  },
+  {
+    id: '8020',
+    name: '80 / 20 Rule (Pay Yourself First)',
+    level: 'beginner',
+    levelLabel: 'Simplest method',
+    desc: 'Save 20% the moment salary arrives — before spending anything. Rooted in the Pareto Principle. Spend the remaining 80% freely.',
+    ref: { label: 'Pareto Principle applied to finance — The Muse & Bankrate', url: 'https://www.themuse.com/advice/80-20-rule' },
+    cats: [
+      { name: 'Savings (Pay Yourself First)', pct: 20, color: '#639922' },
+      { name: 'All Living Expenses',          pct: 80, color: '#378ADD' },
+    ],
+    pills: [
+      { label: '20% Savings First', bg: '#EAF3DE', color: '#173404' },
+      { label: '80% Spend freely',  bg: '#E6F1FB', color: '#042C53' },
+    ]
+  },
+  {
+    id: '503020my',
+    name: '40 / 30 / 20 / 10 Rule (Malaysia Adapted)',
+    level: 'moderate',
+    levelLabel: 'Malaysia-focused',
+    desc: 'A 4-bucket version popular among Malaysian financial planners: essentials, lifestyle, savings, and a dedicated emergency + investment slice.',
+    ref: { label: 'EPF My Money Matters 2.0 & RinggitPlus Malaysia', url: 'https://ringgitplus.com/en/blog/the-experts-corner/the-50-30-20-budget-rule-for-malaysians.html' },
+    cats: [
+      { name: 'Essentials',        pct: 40, color: '#1D9E75' },
+      { name: 'Lifestyle',         pct: 30, color: '#378ADD' },
+      { name: 'Savings',           pct: 20, color: '#639922' },
+      { name: 'Emergency / Invest',pct: 10, color: '#BA7517' },
+    ],
+    pills: [
+      { label: '40% Essentials', bg: '#E1F5EE', color: '#085041' },
+      { label: '30% Lifestyle',  bg: '#E6F1FB', color: '#042C53' },
+      { label: '20% Savings',    bg: '#EAF3DE', color: '#173404' },
+      { label: '10% Emergency',  bg: '#FAEEDA', color: '#633806' },
+    ]
+  },
+];
+
+/* ── STATE ── */
+function uid(){ return '_'+Math.random().toString(36).slice(2,9); }
+let state = {
+  salary: 5000,
+  mode: 'manual',
+  ruleId: '503020',
+  cats: RULES[0].cats.map(c=>({id:uid(),...c}))
+};
+let chart = null;
+let cpTarget = null;
+
+/* ── HELPERS ── */
+function total(){ return state.cats.reduce((s,c)=>s+(c.pct||0),0); }
+function activeRule(){ return RULES.find(r=>r.id===state.ruleId)||RULES[0]; }
+
+/* ── MODE ── */
+function setMode(m){
+  state.mode = m;
+  document.getElementById('tabManual').classList.toggle('active',m==='manual');
+  document.getElementById('tabSmart').classList.toggle('active',m==='smart');
+  document.getElementById('rulePicker').style.display = m==='smart'?'block':'none';
+  document.getElementById('ruleBanner').style.display  = m==='smart'?'block':'none';
+  document.getElementById('addRow').style.display      = m==='manual'?'flex':'none';
+  if(m==='smart') applyRule(state.ruleId);
+  render();
+}
+
+function applyRule(id){
+  state.ruleId = id;
+  const rule = RULES.find(r=>r.id===id)||RULES[0];
+  state.cats = rule.cats.map(c=>({id:uid(),...c}));
+  renderRulePicker();
+  renderRuleBanner();
+  render();
+}
+
+/* ── CATEGORY ACTIONS ── */
+function addCat(){
+  const inp=document.getElementById('newName');
+  const name=inp.value.trim();
+  if(!name){inp.focus();return;}
+  const used=state.cats.map(c=>c.color);
+  const color=PAL.find(p=>!used.includes(p))||PAL[state.cats.length%PAL.length];
+  state.cats.push({id:uid(),name,pct:0,color});
+  inp.value='';
+  render();
+  setTimeout(()=>{const a=document.querySelectorAll('.cat-name-inp');if(a.length)a[a.length-1].focus();},50);
+}
+function delCat(id){ state.cats=state.cats.filter(c=>c.id!==id); render(); }
+function updatePct(id,v){ const c=state.cats.find(x=>x.id===id);if(c)c.pct=Math.min(100,Math.max(0,parseInt(v)||0));render(); }
+function updateName(id,v){ const c=state.cats.find(x=>x.id===id);if(c)c.name=v;renderChart();renderLegend(); }
+
+/* ── COLOR PICKER ── */
+function openCp(id,el){
+  cpTarget=id;
+  const pop=document.getElementById('cpop');
+  pop.innerHTML='';
+  const cur=state.cats.find(x=>x.id===id);
+  PAL.forEach(hex=>{
+    const sw=document.createElement('div');
+    sw.className='csw'+(cur&&cur.color===hex?' sel':'');
+    sw.style.background=hex;
+    sw.onclick=()=>{ const c=state.cats.find(x=>x.id===cpTarget);if(c){c.color=hex;render();}pop.classList.remove('open'); };
+    pop.appendChild(sw);
+  });
+  const r=el.getBoundingClientRect();
+  pop.style.top=(r.bottom+window.scrollY+6)+'px';
+  pop.style.left=Math.max(8,r.left+window.scrollX-60)+'px';
+  pop.classList.add('open');
+}
+document.addEventListener('click',e=>{ const pop=document.getElementById('cpop');if(!e.target.classList.contains('cat-dot')&&!pop.contains(e.target))pop.classList.remove('open'); });
+
+/* ── RENDER RULE PICKER ── */
+function renderRulePicker(){
+  const el=document.getElementById('ruleList');
+  el.innerHTML='';
+  RULES.forEach(rule=>{
+    const div=document.createElement('div');
+    div.className='rule-card'+(state.ruleId===rule.id?' selected':'');
+    div.innerHTML=`
+      <div class="rule-head">
+        <span class="rule-name">${rule.name}</span>
+        <span class="rule-tag ${rule.level}">${rule.levelLabel}</span>
+      </div>
+      <div class="rule-desc">${rule.desc}</div>
+      <div class="rule-pills">${rule.pills.map(p=>`<span class="rule-pill" style="background:${p.bg};color:${p.color}">${p.label}</span>`).join('')}</div>
+      <div class="rule-ref">Source: <a href="${rule.ref.url}" target="_blank">${rule.ref.label}</a></div>`;
+    div.onclick=()=>applyRule(rule.id);
+    el.appendChild(div);
+  });
+}
+
+/* ── RENDER RULE BANNER ── */
+function renderRuleBanner(){
+  const rule=activeRule();
+  const el=document.getElementById('ruleBanner');
+  el.innerHTML=`<div class="active-rule-banner">
+    <div class="arb-head">Using: ${rule.name}</div>
+    <div>${rule.desc}</div>
+    <div class="arb-ref" style="margin-top:4px">Reference: <a href="${rule.ref.url}" target="_blank" rel="noopener">${rule.ref.label} ↗</a></div>
+  </div>`;
+}
+
+/* ── RENDER CATS ── */
+function renderCats(){
+  const list=document.getElementById('catList');
+  const manual=state.mode==='manual';
+  list.innerHTML='';
+  if(!state.cats.length){ list.innerHTML='<div class="empty">No categories yet. Add one below!</div>'; return; }
+  state.cats.forEach(cat=>{
+    const rm=state.salary?Math.round(state.salary*cat.pct/100):0;
+    const div=document.createElement('div');
+    div.className='cat-item';
+    div.innerHTML=`
+      <div class="cat-top">
+        <div class="cat-dot" style="background:${cat.color}" title="Change colour" data-id="${cat.id}"></div>
+        <input class="cat-name-inp" type="text" value="${cat.name.replace(/"/g,'&quot;')}"
+          ${!manual?'readonly':''} data-id="${cat.id}" placeholder="Category name"/>
+        <span class="cat-rm">RM ${rm.toLocaleString()}</span>
+        ${manual?`<button class="cat-del" data-id="${cat.id}" title="Remove">×</button>`:''}
+      </div>
+      <div class="cat-bot">
+        <input type="range" class="cat-slider" min="0" max="100" step="1" value="${cat.pct}"
+          style="accent-color:${cat.color};flex:1" ${!manual?'disabled':''} data-id="${cat.id}"/>
+        <input type="number" class="pct-box" min="0" max="100" value="${cat.pct}"
+          ${!manual?'readonly':''} data-id="${cat.id}"/>
+        <span class="pct-sym">%</span>
+      </div>`;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('.cat-dot').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();openCp(el.dataset.id,el);}));
+  list.querySelectorAll('.cat-name-inp').forEach(el=>el.addEventListener('input',e=>updateName(e.target.dataset.id,e.target.value)));
+  list.querySelectorAll('.cat-slider').forEach(el=>el.addEventListener('input',e=>updatePct(e.target.dataset.id,e.target.value)));
+  list.querySelectorAll('.pct-box').forEach(el=>{
+    el.addEventListener('input',e=>updatePct(e.target.dataset.id,e.target.value));
+    el.addEventListener('change',e=>updatePct(e.target.dataset.id,e.target.value));
+  });
+  list.querySelectorAll('.cat-del').forEach(el=>el.addEventListener('click',e=>delCat(e.target.dataset.id)));
+}
+
+/* ── RENDER TOTAL ── */
+function renderTotal(){
+  const tot=total();
+  const badge=document.getElementById('badge');
+  const fill=document.getElementById('progFill');
+  badge.textContent=tot+'%';
+  badge.className='badge '+(tot>100?'over':tot===100?'ok':'warn');
+  fill.style.width=Math.min(tot,100)+'%';
+  fill.style.background=tot>100?'#D85A30':tot===100?'#1D9E75':'#BA7517';
+}
+
+/* ── RENDER CHART ── */
+function renderChart(){
+  const active=state.cats.filter(c=>c.pct>0);
+  const data=active.map(c=>c.pct);
+  const colors=active.map(c=>c.color);
+  const labels=active.map(c=>c.name||'—');
+  if(!chart){
+    chart=new Chart(document.getElementById('pie'),{
+      type:'doughnut',
+      data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:3,borderColor:'#f7f8f5',hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{
+          const rm=state.salary?Math.round(state.salary*ctx.parsed/100):0;
+          return `  ${ctx.parsed}%  →  RM ${rm.toLocaleString()}`;
+        }}}}}
+    });
+  } else {
+    chart.data.labels=labels;
+    chart.data.datasets[0].data=data;
+    chart.data.datasets[0].backgroundColor=colors;
+    chart.update();
+  }
+}
+
+/* ── RENDER LEGEND ── */
+function renderLegend(){
+  const sal=state.salary;
+  document.getElementById('legend').innerHTML=state.cats.map(c=>{
+    const rm=sal?Math.round(sal*c.pct/100):0;
+    return `<div class="legend-row">
+      <div class="legend-sq" style="background:${c.color}"></div>
+      <span class="legend-name">${c.name||'—'}</span>
+      <span class="legend-pct">${c.pct}%</span>
+      <span class="legend-rm">RM ${rm.toLocaleString()}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── RENDER INSIGHTS ── */
+function renderInsights(){
+  const sal=state.salary;
+  const tot=total();
+  const lc=n=>n.toLowerCase();
+  const find=(...keys)=>state.cats.find(c=>keys.some(k=>lc(c.name).includes(k)));
+  const pct=cat=>cat?(cat.pct||0):0;
+  const savPct=pct(find('sav'));
+  const invPct=pct(find('invest'));
+  const emPct =pct(find('emerg'));
+  const commPct=pct(find('commit','loan','rent','bill','car','hire','expense'));
+  const msgs=[];
+
+  if(!sal){
+    msgs.push({t:'warn',h:'Enter your salary',b:'Add your monthly salary above to see RM values and insights.'});
+  } else if(tot>100){
+    msgs.push({t:'danger',h:'Over 100%!',b:`Reduce ${tot-100}% from your categories to balance your budget.`});
+  } else if(tot<100){
+    const rm=Math.round(sal*(100-tot)/100);
+    msgs.push({t:'warn',h:'Unallocated funds',b:`RM ${rm.toLocaleString()} (${100-tot}%) is not assigned — put it somewhere!`});
+  } else {
+    msgs.push({t:'ok',h:'Perfectly balanced ✓',b:'All 100% allocated. Your budget is complete.'});
+  }
+
+  if(sal&&savPct>0&&savPct<20) msgs.push({t:'warn',h:'Low savings rate',b:`You're saving ${savPct}% — financial advisors recommend at least 20% (EPF + personal savings combined).`});
+  else if(sal&&savPct>=20)       msgs.push({t:'ok',  h:'Strong savings',   b:`${savPct}% in savings builds real financial security over time.`});
+  else if(sal&&savPct===0&&tot===100) msgs.push({t:'danger',h:'No savings!',b:'Add a Savings category. Even 10% compounded over 10 years makes a massive difference.'});
+
+  if(sal&&commPct>40) msgs.push({t:'danger',h:'High fixed commitments',b:`${commPct}% in fixed costs limits your flexibility. Try to keep total commitments under 40%.`});
+
+  if(sal&&invPct===0&&tot===100)  msgs.push({t:'warn',h:'No investment slice',b:'Consider 5–10% toward EPF top-up, ASB, or unit trusts — compound growth is powerful.'});
+  if(sal&&emPct===0&&tot===100)   msgs.push({t:'warn',h:'No emergency fund',b:'3–6 months of expenses as emergency fund protects you from unexpected events.'});
+  if(sal&&(savPct+invPct+emPct)>=30&&tot===100) msgs.push({t:'ok',h:'Wealth-building mode',b:`${savPct+invPct+emPct}% going toward your future. You're on the right track!`});
+
+  const sec=document.getElementById('insSection');
+  const grid=document.getElementById('insGrid');
+  if(!msgs.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  grid.innerHTML=msgs.map(m=>`<div class="ins ${m.t}"><div class="ins-head">${m.h}</div><div>${m.b}</div></div>`).join('');
+}
+
+/* ── MAIN RENDER ── */
+function render(){
+  renderCats();
+  renderChart();
+  renderLegend();
+  renderTotal();
+  renderInsights();
+}
+
+/* ── EVENTS ── */
+document.getElementById('salInp').addEventListener('input',e=>{state.salary=parseFloat(e.target.value)||0;render();});
+document.getElementById('newName').addEventListener('keydown',e=>{if(e.key==='Enter')addCat();});
+
+/* ── INIT ── */
+renderRulePicker();
+renderRuleBanner();
+render();
+</script>
+</body>
+</html>
