@@ -3,194 +3,455 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>GajiFlow — Salary Budget Planner</title>
+<title>GajiFlow v2 — Budget + Expense Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#1D9E75;--green-light:#E1F5EE;--green-dark:#085041;
-  --amber:#BA7517;--amber-light:#FAEEDA;--amber-dark:#633806;
-  --red:#D85A30;--red-light:#FAECE7;--red-dark:#4A1B0C;
-  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#042C53;
-  --purple:#534AB7;--purple-light:#EEEDFE;--purple-dark:#26215C;
-  --font:'Plus Jakarta Sans',sans-serif;--mono:'DM Mono',monospace;
+  --g:#18B981;--g2:#0E9268;--gl:#E0F7EF;--gd:#064232;
+  --a:#F59E0B;--al:#FEF3C7;--ad:#78350F;
+  --r:#EF4444;--rl:#FEE2E2;--rd:#7F1D1D;
+  --b:#3B82F6;--bl:#EFF6FF;--bd:#1E3A8A;
+  --ink:#111827;--ink2:#6B7280;--ink3:#9CA3AF;
+  --paper:#F9FAFB;--card:#FFFFFF;--border:#E5E7EB;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --display:'Syne',sans-serif;
+  --mono:'DM Mono',monospace;
+  --r-sm:8px;--r-md:14px;--r-lg:20px;--r-xl:28px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 24px rgba(0,0,0,.1),0 1px 4px rgba(0,0,0,.06);
 }
-body{font-family:var(--font);background:#f7f8f5;color:#1a1a1a;min-height:100vh;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
 
-/* SHELL */
-.shell{max-width:980px;margin:0 auto;padding:24px 16px 80px;display:grid;grid-template-columns:1fr;gap:14px}
-@media(min-width:720px){
-  .shell{padding:40px 32px 80px;grid-template-columns:1fr 1fr;grid-template-areas:"hdr hdr" "sal sal" "mod mod" "cat chart" "ins ins"}
-  .s-hdr{grid-area:hdr}.s-sal{grid-area:sal}.s-mod{grid-area:mod}
-  .s-cat{grid-area:cat}.s-chart{grid-area:chart}.s-ins{grid-area:ins}
+/* ─── NAV ─── */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(249,250,251,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:56px;
 }
+.logo{font-family:var(--display);font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+.logo span{color:var(--g)}
+.nav-tabs{display:flex;gap:4px}
+.ntab{padding:6px 14px;border-radius:999px;border:none;background:transparent;font-family:var(--font);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;transition:all .15s}
+.ntab.active{background:var(--ink);color:#fff}
+.ntab:hover:not(.active){background:var(--border)}
+.add-expense-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:999px;border:none;
+  background:var(--g);color:#fff;
+  font-family:var(--font);font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(24,185,129,.35);
+}
+.add-expense-btn:hover{background:var(--g2);transform:translateY(-1px)}
+.add-expense-btn:active{transform:translateY(0)}
 
-/* CARD */
-.card{background:#fff;border:1px solid #e8e8e2;border-radius:14px;padding:18px 20px}
-.sec-lbl{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#aaa;margin-bottom:10px}
+/* ─── PAGES ─── */
+.page{display:none;max-width:980px;margin:0 auto;padding:24px 16px 80px}
+.page.active{display:block}
+@media(min-width:720px){.page{padding:32px 32px 80px}}
 
-/* HEADER */
-.s-hdr{display:flex;align-items:center;justify-content:space-between}
-.logo{font-size:26px;font-weight:700;letter-spacing:-.8px}
-.logo span{color:var(--green)}
-.tagline{font-size:13px;color:#888;margin-top:2px}
-.badge{font-family:var(--mono);font-size:13px;font-weight:500;padding:6px 16px;border-radius:999px;border:1.5px solid;transition:all .2s}
-.badge.ok  {background:var(--green-light);border-color:var(--green);color:var(--green-dark)}
-.badge.warn{background:var(--amber-light);border-color:var(--amber);color:var(--amber-dark)}
-.badge.over{background:var(--red-light)  ;border-color:var(--red)  ;color:var(--red-dark)}
+/* ─── GRID ─── */
+.two-col{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:720px){.two-col{grid-template-columns:1fr 1fr}}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 
-/* SALARY */
-.sal-row{display:flex;align-items:center;gap:10px}
-.rm{font-size:28px;font-weight:700;color:var(--green);font-family:var(--mono)}
-#salInp{font-family:var(--mono);font-size:28px;font-weight:500;border:none;background:transparent;color:#1a1a1a;width:100%;outline:none;-moz-appearance:textfield}
-#salInp::-webkit-outer-spin-button,#salInp::-webkit-inner-spin-button{-webkit-appearance:none}
-#salInp::placeholder{color:#ccc}
-.prog-track{height:5px;background:#f0f0ea;border-radius:3px;margin-top:14px;overflow:hidden}
-.prog-fill{height:100%;border-radius:3px;transition:width .25s,background .25s}
+/* ─── CARDS ─── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow)}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;box-shadow:var(--shadow)}
+.card-title{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:-.2px;color:var(--ink);margin-bottom:4px}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:12px}
 
-/* MODE TABS */
-.s-mod{display:flex;gap:8px}
-.tab{flex:1;padding:10px;border:1.5px solid #e0e0d8;border-radius:8px;background:#fff;font-family:var(--font);font-size:13px;font-weight:600;color:#888;cursor:pointer;transition:all .15s}
-.tab:hover{border-color:var(--green);color:var(--green)}
-.tab.active{background:var(--green);border-color:var(--green);color:#fff}
+/* ─── STAT CARDS ─── */
+.stat-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--ink);margin:4px 0 2px}
+.stat-sub{font-size:12px;color:var(--ink2)}
+.stat-card{border-radius:var(--r-md);padding:16px;border:1px solid}
+.stat-card.neutral{background:var(--card);border-color:var(--border)}
+.stat-card.success{background:var(--gl);border-color:#6EE7B7}
+.stat-card.warning{background:var(--al);border-color:#FCD34D}
+.stat-card.danger {background:var(--rl);border-color:#FCA5A5}
 
-/* RULE PICKER (inside smart mode) */
-.rule-picker{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.rule-card{border:1.5px solid #e8e8e2;border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;background:#fafaf8}
-.rule-card:hover{border-color:var(--green)}
-.rule-card.selected{border-color:var(--green);background:var(--green-light)}
-.rule-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.rule-name{font-size:14px;font-weight:700;color:#1a1a1a}
-.rule-tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px;letter-spacing:.4px}
-.rule-tag.beginner{background:#E1F5EE;color:#085041}
-.rule-tag.moderate{background:#FAEEDA;color:#633806}
-.rule-tag.aggressive{background:#FAECE7;color:#4A1B0C}
-.rule-desc{font-size:12px;color:#666;line-height:1.5;margin-bottom:6px}
-.rule-pills{display:flex;flex-wrap:wrap;gap:4px}
-.rule-pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px}
-.rule-ref{font-size:11px;color:#aaa;margin-top:6px}
-.rule-ref a{color:var(--blue);text-decoration:none}
-.rule-ref a:hover{text-decoration:underline}
+/* ─── SALARY INPUT ─── */
+.sal-hero{
+  background:linear-gradient(135deg,#0E9268 0%,#059669 50%,#047857 100%);
+  border-radius:var(--r-xl);padding:28px 24px;color:#fff;
+  position:relative;overflow:hidden;margin-bottom:16px;
+}
+.sal-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:200px;height:200px;border-radius:50%;
+  background:rgba(255,255,255,.06);
+}
+.sal-hero::after{
+  content:'';position:absolute;bottom:-60px;left:-20px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.sal-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.7;margin-bottom:8px}
+.sal-row{display:flex;align-items:center;gap:8px}
+.sal-prefix{font-family:var(--display);font-size:32px;font-weight:800;opacity:.8}
+.sal-inp{
+  font-family:var(--mono);font-size:32px;font-weight:500;
+  border:none;background:transparent;color:#fff;width:100%;outline:none;
+  -moz-appearance:textfield;
+}
+.sal-inp::-webkit-outer-spin-button,.sal-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.sal-inp::placeholder{opacity:.35}
+.sal-note{font-size:12px;opacity:.6;margin-top:8px}
+.prog-track{height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin-top:16px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
 
-/* CATEGORIES */
+/* ─── MODE TABS ─── */
+.mode-wrap{display:flex;gap:8px;margin-bottom:16px}
+.mode-btn{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--card);font-family:var(--font);font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;transition:all .15s}
+.mode-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.mode-btn:hover:not(.active){border-color:var(--ink2)}
+
+/* ─── RULE PICKER ─── */
+.rule-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.rule-card{border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px 16px;cursor:pointer;transition:all .15s;background:#fafafa}
+.rule-card:hover{border-color:var(--g)}
+.rule-card.sel{border-color:var(--g);background:var(--gl)}
+.rule-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.rule-name{font-family:var(--display);font-size:14px;font-weight:700;color:var(--ink)}
+.rule-tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:.3px}
+.tag-beg{background:#E0F7EF;color:#064232}
+.tag-mod{background:var(--al);color:var(--ad)}
+.tag-agg{background:var(--rl);color:var(--rd)}
+.rule-desc{font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:8px}
+.rule-pills{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.rule-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+.rule-ref{font-size:11px;color:var(--ink3)}
+.rule-ref a{color:var(--b);text-decoration:none;font-weight:600}
+
+/* ─── CAT LIST ─── */
 .cat-list{display:flex;flex-direction:column;gap:8px}
-.cat-item{background:#fafaf8;border:1px solid #eeeee8;border-radius:8px;padding:10px 12px;transition:border-color .15s}
-.cat-item:hover{border-color:#ccc}
+.cat-item{background:#FAFAFA;border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;transition:border-color .15s}
+.cat-item:hover{border-color:#D1D5DB}
 .cat-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .cat-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;cursor:pointer;border:2px solid rgba(0,0,0,.1);transition:transform .1s}
 .cat-dot:hover{transform:scale(1.25)}
-.cat-name-inp{flex:1;font-family:var(--font);font-size:13px;font-weight:600;border:none;border-bottom:1.5px solid transparent;background:transparent;color:#1a1a1a;outline:none;min-width:0;padding-bottom:1px;transition:border-color .15s}
-.cat-name-inp:not([readonly]):focus{border-bottom-color:var(--green)}
+.cat-name-inp{flex:1;font-family:var(--font);font-size:13px;font-weight:600;border:none;border-bottom:1.5px solid transparent;background:transparent;color:var(--ink);outline:none;min-width:0;padding-bottom:1px;transition:border-color .15s}
+.cat-name-inp:not([readonly]):focus{border-bottom-color:var(--g)}
 .cat-name-inp[readonly]{pointer-events:none;color:#555}
-.cat-rm{font-family:var(--mono);font-size:12px;font-weight:500;color:#888;white-space:nowrap}
-.cat-del{background:none;border:none;cursor:pointer;font-size:18px;color:#ccc;line-height:1;padding:0 2px;transition:color .15s;display:flex;align-items:center}
-.cat-del:hover{color:var(--red)}
+.cat-rm{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink2);white-space:nowrap}
+.cat-del{background:none;border:none;cursor:pointer;font-size:18px;color:#D1D5DB;line-height:1;padding:0 2px;transition:color .15s}
+.cat-del:hover{color:var(--r)}
 .cat-bot{display:flex;align-items:center;gap:8px}
 .cat-slider{flex:1;height:4px;cursor:pointer}
 .cat-slider:disabled{opacity:.4;cursor:not-allowed}
-.pct-box{font-family:var(--mono);font-size:12px;font-weight:500;width:44px;text-align:center;border:1px solid #e0e0d8;border-radius:6px;background:#fff;color:#1a1a1a;padding:3px 4px;outline:none;-moz-appearance:textfield}
+.pct-box{font-family:var(--mono);font-size:12px;font-weight:500;width:44px;text-align:center;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--ink);padding:3px 4px;outline:none;-moz-appearance:textfield}
 .pct-box::-webkit-outer-spin-button,.pct-box::-webkit-inner-spin-button{-webkit-appearance:none}
-.pct-box:not([readonly]):focus{border-color:var(--green)}
-.pct-box[readonly]{background:#f5f5f0;color:#888}
-.pct-sym{font-size:11px;color:#bbb}
-.add-row{display:flex;gap:8px;margin-top:10px}
-.add-inp{flex:1;font-family:var(--font);font-size:13px;border:1px dashed #ccc;border-radius:8px;background:#fff;padding:8px 12px;outline:none;color:#1a1a1a}
-.add-inp:focus{border-color:var(--green);border-style:solid}
-.add-btn{font-family:var(--font);font-size:13px;font-weight:600;padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;transition:opacity .15s}
-.add-btn:hover{opacity:.85}
-.empty{text-align:center;padding:20px;color:#bbb;font-size:13px}
+.pct-box:not([readonly]):focus{border-color:var(--g)}
+.pct-box[readonly]{background:#F3F4F6;color:var(--ink2)}
+.pct-sym{font-size:11px;color:var(--ink3)}
+.add-cat-row{display:flex;gap:8px;margin-top:10px}
+.add-cat-inp{flex:1;font-family:var(--font);font-size:13px;border:1px dashed #D1D5DB;border-radius:var(--r-sm);background:#fff;padding:8px 12px;outline:none;color:var(--ink)}
+.add-cat-inp:focus{border-color:var(--g);border-style:solid}
+.add-cat-btn{font-family:var(--font);font-size:13px;font-weight:700;padding:8px 16px;background:var(--g);color:#fff;border:none;border-radius:var(--r-sm);cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.add-cat-btn:hover{opacity:.85}
+.empty-cats{text-align:center;padding:20px;color:var(--ink3);font-size:13px}
 
-/* CHART */
-.chart-wrap{position:relative;width:100%;height:220px}
-.legend-list{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+/* ─── BADGE ─── */
+.badge{font-family:var(--mono);font-size:12px;font-weight:500;padding:5px 14px;border-radius:999px;border:1.5px solid;transition:all .2s}
+.badge.ok  {background:var(--gl);border-color:#6EE7B7;color:var(--gd)}
+.badge.warn{background:var(--al);border-color:#FCD34D;color:var(--ad)}
+.badge.over{background:var(--rl);border-color:#FCA5A5;color:var(--rd)}
+
+/* ─── CHART ─── */
+.chart-wrap{position:relative;width:100%;height:210px}
+.legend-list{margin-top:14px;display:flex;flex-direction:column;gap:5px}
 .legend-row{display:flex;align-items:center;gap:8px;font-size:12px}
-.legend-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.legend-name{flex:1;color:#666}
-.legend-pct{font-family:var(--mono);color:#bbb;font-size:11px;min-width:28px;text-align:right}
-.legend-rm{font-family:var(--mono);font-weight:500;min-width:80px;text-align:right}
+.legend-sq{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.legend-name{flex:1;color:var(--ink2)}
+.legend-pct{font-family:var(--mono);color:var(--ink3);font-size:11px;min-width:28px;text-align:right}
+.legend-rm{font-family:var(--mono);font-weight:500;min-width:72px;text-align:right}
 
-/* INSIGHTS */
+/* ─── INSIGHTS ─── */
 .ins-grid{display:grid;grid-template-columns:1fr;gap:8px}
 @media(min-width:720px){.ins-grid{grid-template-columns:1fr 1fr}}
-.ins{border-radius:8px;padding:12px 14px;border-width:1px;border-style:solid;font-size:13px;line-height:1.5}
-.ins.ok    {background:var(--green-light);border-color:#5DCAA5;color:var(--green-dark)}
-.ins.warn  {background:var(--amber-light);border-color:#FAC775;color:var(--amber-dark)}
-.ins.danger{background:var(--red-light)  ;border-color:#F0997B;color:var(--red-dark)}
-.ins-head{font-weight:700;margin-bottom:3px}
+.ins-card{border-radius:var(--r-sm);padding:12px 14px;border:1px solid;font-size:13px;line-height:1.55}
+.ins-card.ok    {background:var(--gl);border-color:#6EE7B7;color:var(--gd)}
+.ins-card.warn  {background:var(--al);border-color:#FCD34D;color:var(--ad)}
+.ins-card.danger{background:var(--rl);border-color:#FCA5A5;color:var(--rd)}
+.ins-head{font-weight:700;margin-bottom:3px;font-size:13px}
 
-/* COLOR PICKER */
-.cpop{display:none;position:fixed;z-index:999;background:#fff;border:1px solid #e0e0d8;border-radius:8px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,.12);flex-wrap:wrap;gap:6px;width:156px}
+/* ─── COLOR PICKER ─── */
+.cpop{display:none;position:fixed;z-index:999;background:#fff;border:1px solid var(--border);border-radius:var(--r-sm);padding:8px;box-shadow:var(--shadow-lg);flex-wrap:wrap;gap:6px;width:156px}
 .cpop.open{display:flex}
 .csw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .1s}
 .csw:hover{transform:scale(1.2)}
-.csw.sel{border-color:#1a1a1a}
+.csw.sel{border-color:var(--ink)}
 
-/* ACTIVE RULE BANNER */
-.active-rule-banner{background:var(--green-light);border:1px solid #5DCAA5;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--green-dark);line-height:1.5}
-.arb-head{font-weight:700;font-size:13px;margin-bottom:2px}
-.arb-ref a{color:var(--green-dark);font-weight:600}
+/* ─── RULE BANNER ─── */
+.rule-banner{background:var(--gl);border:1px solid #6EE7B7;border-radius:var(--r-sm);padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--gd);line-height:1.5}
+.rule-banner b{font-weight:700}
+.rule-banner a{color:var(--gd);font-weight:700}
+
+/* ─── MODAL ─── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+@media(min-width:520px){.modal-overlay{align-items:center}}
+.modal{
+  background:var(--card);width:100%;max-width:480px;
+  border-radius:var(--r-xl) var(--r-xl) 0 0;
+  padding:28px 24px 32px;
+  animation:slideUp .25s ease;
+}
+@media(min-width:520px){.modal{border-radius:var(--r-xl);padding:32px 28px}}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-family:var(--display);font-size:20px;font-weight:800;margin-bottom:20px;letter-spacing:-.4px}
+.modal-close{position:absolute;top:24px;right:24px;background:var(--border);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--ink2);transition:background .15s}
+.modal-close:hover{background:#D1D5DB}
+.modal{position:relative}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px;display:block;letter-spacing:.3px}
+.form-inp{
+  width:100%;font-family:var(--font);font-size:15px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  background:#fff;color:var(--ink);padding:10px 14px;outline:none;
+  transition:border-color .15s;
+}
+.form-inp:focus{border-color:var(--g)}
+.form-inp-prefix{position:relative}
+.form-inp-prefix .prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:15px;font-weight:500;color:var(--g)}
+.form-inp-prefix .form-inp{padding-left:38px}
+.cat-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.submit-btn{width:100%;padding:14px;background:var(--g);color:#fff;border:none;border-radius:var(--r-sm);font-family:var(--display);font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;margin-top:4px;letter-spacing:-.2px}
+.submit-btn:hover{background:var(--g2);transform:translateY(-1px)}
+
+/* ─── EXPENSE LIST ─── */
+.expense-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;
+  background:#FAFAFA;border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  transition:border-color .15s;
+}
+.expense-item:hover{border-color:#D1D5DB}
+.exp-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.exp-info{flex:1;min-width:0}
+.exp-cat{font-size:13px;font-weight:600;color:var(--ink)}
+.exp-note{font-size:11px;color:var(--ink3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exp-right{text-align:right;flex-shrink:0}
+.exp-amount{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink)}
+.exp-date{font-size:11px;color:var(--ink3);margin-top:1px}
+.exp-del{background:none;border:none;cursor:pointer;color:#D1D5DB;font-size:16px;padding:4px;transition:color .15s;flex-shrink:0}
+.exp-del:hover{color:var(--r)}
+.exp-list{display:flex;flex-direction:column;gap:6px}
+.no-expenses{text-align:center;padding:32px 20px;color:var(--ink3);font-size:13px;line-height:1.7}
+.no-exp-emoji{font-size:32px;display:block;margin-bottom:8px}
+
+/* ─── BUDGET VS ACTUAL ─── */
+.bva-item{margin-bottom:14px}
+.bva-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.bva-cat{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.bva-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.bva-numbers{font-family:var(--mono);font-size:11px;color:var(--ink2)}
+.bva-numbers b{color:var(--ink)}
+.bva-track{height:8px;background:#F3F4F6;border-radius:4px;overflow:hidden;position:relative}
+.bva-planned{height:100%;border-radius:4px;opacity:.25;position:absolute;top:0;left:0;transition:width .4s}
+.bva-actual{height:100%;border-radius:4px;position:absolute;top:0;left:0;transition:width .4s}
+.bva-status{font-size:11px;font-weight:600;margin-top:4px}
+.bva-status.ok    {color:var(--g2)}
+.bva-status.warn  {color:var(--a)}
+.bva-status.over  {color:var(--r)}
+
+/* ─── DASHBOARD SUMMARY ─── */
+.summary-hero{
+  background:linear-gradient(135deg,#1F2937 0%,#111827 100%);
+  border-radius:var(--r-xl);padding:24px;color:#fff;margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.summary-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.03)}
+.sh-label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;opacity:.5;margin-bottom:6px}
+.sh-amount{font-family:var(--mono);font-size:36px;font-weight:500;color:#fff;margin-bottom:4px}
+.sh-sub{font-size:13px;opacity:.5}
+.sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.sh-mini{background:rgba(255,255,255,.06);border-radius:12px;padding:14px}
+.sh-mini-label{font-size:11px;opacity:.5;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.sh-mini-val{font-family:var(--mono);font-size:18px;font-weight:500}
+.sh-mini-val.red{color:#F87171}
+.sh-mini-val.green{color:#34D399}
+
+/* ─── MONTH FILTER ─── */
+.month-filter{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.month-btn{padding:6px 12px;border:1px solid var(--border);border-radius:var(--r-sm);background:#fff;font-family:var(--font);font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;transition:all .15s}
+.month-btn:hover{border-color:var(--g);color:var(--g)}
+.month-label{font-family:var(--display);font-size:16px;font-weight:700;color:var(--ink);flex:1;text-align:center}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
 </style>
 </head>
 <body>
-<div class="shell">
 
-  <!-- HEADER -->
-  <div class="s-hdr">
-    <div>
-      <div class="logo">Gaji<span>Flow</span></div>
-      <div class="tagline">Budget your salary in seconds</div>
-    </div>
-    <div class="badge ok" id="badge">100%</div>
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo">Gaji<span>Flow</span></div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="goPage('budget')">Budget</button>
+    <button class="ntab" onclick="goPage('tracker')">Tracker</button>
+    <button class="ntab" onclick="goPage('dashboard')">Dashboard</button>
   </div>
+  <button class="add-expense-btn" onclick="openModal()">+ Add</button>
+</nav>
 
-  <!-- SALARY -->
-  <div class="card s-sal">
-    <div class="sec-lbl">Monthly salary (after EPF & SOCSO)</div>
+<!-- ══════════ PAGE: BUDGET ══════════ -->
+<div class="page active" id="page-budget">
+
+  <!-- SALARY HERO -->
+  <div class="sal-hero">
+    <div class="sal-label">Monthly salary (after EPF & SOCSO)</div>
     <div class="sal-row">
-      <span class="rm">RM</span>
-      <input id="salInp" type="number" min="0" placeholder="5000" value="5000"/>
+      <span class="sal-prefix">RM</span>
+      <input class="sal-inp" id="salInp" type="number" min="0" placeholder="5,000" value="5000"/>
     </div>
+    <div class="sal-note">Your take-home pay after deductions</div>
     <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
   </div>
 
+  <!-- TOTAL BADGE -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <span style="font-size:13px;color:var(--ink2);font-weight:500">Total allocated</span>
+    <span class="badge ok" id="totalBadge">100%</span>
+  </div>
+
   <!-- MODE TABS -->
-  <div class="s-mod">
-    <button class="tab active" id="tabManual" onclick="setMode('manual')">Manual — I'll set it myself</button>
-    <button class="tab" id="tabSmart" onclick="setMode('smart')">Smart — suggest for me</button>
+  <div class="mode-wrap">
+    <button class="mode-btn active" id="tabManual" onclick="setMode('manual')">✏️ Manual</button>
+    <button class="mode-btn" id="tabSmart" onclick="setMode('smart')">✨ Smart suggest</button>
   </div>
 
-  <!-- CATEGORIES -->
-  <div class="card s-cat">
-    <div class="sec-lbl">Your categories</div>
-
-    <!-- SMART: rule picker -->
-    <div id="rulePicker" style="display:none">
-      <div class="rule-picker" id="ruleList"></div>
-    </div>
-
-    <!-- Active rule banner (smart mode only) -->
-    <div id="ruleBanner" style="display:none"></div>
-
-    <div class="cat-list" id="catList"></div>
-    <div class="add-row" id="addRow">
-      <input class="add-inp" id="newName" placeholder="e.g. Car loan, Rent, TNB bill..."/>
-      <button class="add-btn" onclick="addCat()">+ Add</button>
-    </div>
+  <!-- SMART: RULE PICKER -->
+  <div id="rulePicker" style="display:none">
+    <div class="rule-grid" id="ruleList"></div>
   </div>
+  <div id="ruleBanner" style="display:none"></div>
 
-  <!-- CHART -->
-  <div class="card s-chart">
-    <div class="sec-lbl">Breakdown</div>
-    <div class="chart-wrap"><canvas id="pie" role="img" aria-label="Doughnut chart of salary allocation"></canvas></div>
-    <div class="legend-list" id="legend"></div>
+  <div class="two-col">
+    <!-- CATEGORIES -->
+    <div class="card">
+      <div class="sec-label">Your categories</div>
+      <div class="cat-list" id="catList"></div>
+      <div class="add-cat-row" id="addCatRow">
+        <input class="add-cat-inp" id="newCatName" placeholder="e.g. Car loan, Rent, TNB..."/>
+        <button class="add-cat-btn" onclick="addCat()">+ Add</button>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="card">
+      <div class="sec-label">Breakdown</div>
+      <div class="chart-wrap"><canvas id="pieChart" role="img" aria-label="Budget allocation pie chart"></canvas></div>
+      <div class="legend-list" id="legend"></div>
+    </div>
   </div>
 
   <!-- INSIGHTS -->
-  <div class="s-ins" id="insSection" style="display:none">
+  <div id="insSection" class="mt16" style="display:none">
     <div class="ins-grid" id="insGrid"></div>
   </div>
+</div>
 
+<!-- ══════════ PAGE: TRACKER ══════════ -->
+<div class="page" id="page-tracker">
+  <div class="month-filter">
+    <button class="month-btn" onclick="changeMonth(-1)">←</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button class="month-btn" onclick="changeMonth(1)">→</button>
+  </div>
+
+  <div class="two-col">
+    <!-- EXPENSE LIST -->
+    <div class="card">
+      <div class="sec-label">Recent expenses</div>
+      <div class="exp-list" id="expList"></div>
+    </div>
+
+    <!-- BUDGET VS ACTUAL -->
+    <div class="card">
+      <div class="sec-label">Budget vs actual</div>
+      <div id="bvaList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PAGE: DASHBOARD ══════════ -->
+<div class="page" id="page-dashboard">
+  <div class="summary-hero" id="summaryHero">
+    <div class="sh-label">Total spent this month</div>
+    <div class="sh-amount" id="shTotal">RM 0</div>
+    <div class="sh-sub" id="shSub">of RM 0 budgeted</div>
+    <div class="sh-grid">
+      <div class="sh-mini">
+        <div class="sh-mini-label">Remaining</div>
+        <div class="sh-mini-val green" id="shRemain">RM 0</div>
+      </div>
+      <div class="sh-mini">
+        <div class="sh-mini-label">Expenses</div>
+        <div class="sh-mini-val" id="shCount">0 items</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="sec-label">Spending by category</div>
+      <div class="chart-wrap"><canvas id="dashChart" role="img" aria-label="Spending breakdown chart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="sec-label">Smart insights</div>
+      <div id="dashInsights"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL: ADD EXPENSE ══════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Add Expense</div>
+
+    <div class="form-group">
+      <label class="form-label">AMOUNT (RM)</label>
+      <div class="form-inp-prefix">
+        <span class="prefix">RM</span>
+        <input class="form-inp" id="expAmount" type="number" min="0" step="0.01" placeholder="0.00"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">CATEGORY</label>
+        <select class="form-inp cat-select" id="expCat"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">DATE</label>
+        <input class="form-inp" id="expDate" type="date"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">NOTE (OPTIONAL)</label>
+      <input class="form-inp" id="expNote" type="text" placeholder="e.g. Lunch at mamak, Grab to office..."/>
+    </div>
+
+    <button class="submit-btn" onclick="addExpense()">Save Expense</button>
+  </div>
 </div>
 
 <!-- COLOR PICKER -->
@@ -198,148 +459,171 @@ body{font-family:var(--font);background:#f7f8f5;color:#1a1a1a;min-height:100vh;-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-/* ── PALETTE ── */
-const PAL = ['#1D9E75','#378ADD','#D4537E','#7F77DD','#BA7517','#639922','#D85A30','#5DCAA5','#F0997B','#9FE1CB','#FAC775','#AFA9EC'];
+/* ══ PALETTE & RULES ══ */
+const PAL = ['#18B981','#3B82F6','#EC4899','#8B5CF6','#F59E0B','#10B981','#EF4444','#06B6D4','#F97316','#84CC16','#6366F1','#14B8A6'];
 
-/* ── FINANCIAL RULES ── */
+const CAT_ICONS = {'essentials':'🏠','lifestyle':'🎯','savings':'💰','investment':'📈','commitments':'📋','emergency':'🛡️','food':'🍜','transport':'🚗','bills':'⚡','entertainment':'🎬','health':'💊','shopping':'🛍️','education':'📚','others':'📦'};
+function getCatIcon(name){ const lc=name.toLowerCase(); for(const[k,v] of Object.entries(CAT_ICONS)){if(lc.includes(k))return v;} return '📦'; }
+function getCatColor(name){ const lc=name.toLowerCase(); const map={'essentials':PAL[0],'food':PAL[0],'lifestyle':PAL[1],'transport':PAL[1],'savings':PAL[5],'investment':PAL[4],'commitments':PAL[3],'bills':PAL[8],'emergency':PAL[9],'entertainment':PAL[2],'health':PAL[7],'shopping':PAL[2],'education':PAL[6]}; for(const[k,v] of Object.entries(map)){if(lc.includes(k))return v;} return PAL[Math.floor(Math.random()*PAL.length)]; }
+
 const RULES = [
-  {
-    id: '503020',
-    name: '50 / 30 / 20 Rule',
-    level: 'beginner',
-    levelLabel: 'Beginner-friendly',
-    desc: 'The classic rule by Elizabeth Warren: half for needs, 30% for lifestyle, 20% for savings. Best for those just starting to budget.',
-    ref: { label: 'Warren & Tyagi — All Your Worth (2005)', url: 'https://www.kwsp.gov.my/en/w/article/50-30-20-rule' },
-    cats: [
-      { name: 'Essentials (Needs)',  pct: 50, color: '#1D9E75' },
-      { name: 'Lifestyle (Wants)',   pct: 30, color: '#378ADD' },
-      { name: 'Savings & Investment',pct: 20, color: '#639922' },
-    ],
-    pills: [
-      { label: '50% Needs',    bg: '#E1F5EE', color: '#085041' },
-      { label: '30% Wants',    bg: '#E6F1FB', color: '#042C53' },
-      { label: '20% Savings',  bg: '#EAF3DE', color: '#173404' },
-    ]
-  },
-  {
-    id: '702010',
-    name: '70 / 20 / 10 Rule',
-    level: 'moderate',
-    levelLabel: 'High cost of living',
-    desc: 'For Malaysians where essentials eat up more than half of income. 70% covers all spending, 20% savings, 10% enjoyment or charity.',
-    ref: { label: 'Adapted for Malaysia — RinggitPlus & KWSP guidelines', url: 'https://www.press.com.my/finance/does-50-30-20-budget-still-work/' },
-    cats: [
-      { name: 'All Expenses',        pct: 70, color: '#1D9E75' },
-      { name: 'Savings & Investment', pct: 20, color: '#639922' },
-      { name: 'Enjoyment / Charity',  pct: 10, color: '#D4537E' },
-    ],
-    pills: [
-      { label: '70% Living',   bg: '#E1F5EE', color: '#085041' },
-      { label: '20% Savings',  bg: '#EAF3DE', color: '#173404' },
-      { label: '10% Fun/Give', bg: '#FBEAF0', color: '#4B1528' },
-    ]
-  },
-  {
-    id: '8020',
-    name: '80 / 20 Rule (Pay Yourself First)',
-    level: 'beginner',
-    levelLabel: 'Simplest method',
-    desc: 'Save 20% the moment salary arrives — before spending anything. Rooted in the Pareto Principle. Spend the remaining 80% freely.',
-    ref: { label: 'Pareto Principle applied to finance — The Muse & Bankrate', url: 'https://www.themuse.com/advice/80-20-rule' },
-    cats: [
-      { name: 'Savings (Pay Yourself First)', pct: 20, color: '#639922' },
-      { name: 'All Living Expenses',          pct: 80, color: '#378ADD' },
-    ],
-    pills: [
-      { label: '20% Savings First', bg: '#EAF3DE', color: '#173404' },
-      { label: '80% Spend freely',  bg: '#E6F1FB', color: '#042C53' },
-    ]
-  },
-  {
-    id: '503020my',
-    name: '40 / 30 / 20 / 10 Rule (Malaysia Adapted)',
-    level: 'moderate',
-    levelLabel: 'Malaysia-focused',
-    desc: 'A 4-bucket version popular among Malaysian financial planners: essentials, lifestyle, savings, and a dedicated emergency + investment slice.',
-    ref: { label: 'EPF My Money Matters 2.0 & RinggitPlus Malaysia', url: 'https://ringgitplus.com/en/blog/the-experts-corner/the-50-30-20-budget-rule-for-malaysians.html' },
-    cats: [
-      { name: 'Essentials',        pct: 40, color: '#1D9E75' },
-      { name: 'Lifestyle',         pct: 30, color: '#378ADD' },
-      { name: 'Savings',           pct: 20, color: '#639922' },
-      { name: 'Emergency / Invest',pct: 10, color: '#BA7517' },
-    ],
-    pills: [
-      { label: '40% Essentials', bg: '#E1F5EE', color: '#085041' },
-      { label: '30% Lifestyle',  bg: '#E6F1FB', color: '#042C53' },
-      { label: '20% Savings',    bg: '#EAF3DE', color: '#173404' },
-      { label: '10% Emergency',  bg: '#FAEEDA', color: '#633806' },
-    ]
-  },
+  {id:'503020',name:'50 / 30 / 20',level:'beg',levelLabel:'Beginner-friendly',desc:'Elizabeth Warren\'s classic — needs, wants, savings. Perfect for first-time budgeters.',ref:{label:'Warren & Tyagi — All Your Worth (2005)',url:'https://www.kwsp.gov.my/en/w/article/50-30-20-rule'},cats:[{name:'Essentials',pct:50,color:'#18B981'},{name:'Lifestyle',pct:30,color:'#3B82F6'},{name:'Savings',pct:20,color:'#10B981'}],pills:[{l:'50% Needs',bg:'#E0F7EF',c:'#064232'},{l:'30% Wants',bg:'#EFF6FF',c:'#1E3A8A'},{l:'20% Savings',bg:'#D1FAE5',c:'#065F46'}]},
+  {id:'702010',name:'70 / 20 / 10',level:'mod',levelLabel:'High cost of living',desc:'For urban Malaysians where cost of living is heavy. 70% all expenses, 20% savings, 10% fun.',ref:{label:'Adapted for Malaysia — RinggitPlus & KWSP',url:'https://ringgitplus.com/en/blog/the-experts-corner/the-50-30-20-budget-rule-for-malaysians.html'},cats:[{name:'All Expenses',pct:70,color:'#18B981'},{name:'Savings',pct:20,color:'#10B981'},{name:'Enjoyment',pct:10,color:'#EC4899'}],pills:[{l:'70% Living',bg:'#E0F7EF',c:'#064232'},{l:'20% Savings',bg:'#D1FAE5',c:'#065F46'},{l:'10% Fun',bg:'#FCE7F3',c:'#831843'}]},
+  {id:'8020',name:'80 / 20 (Pay First)',level:'beg',levelLabel:'Simplest method',desc:'Save 20% the moment gaji masuk — before you spend anything. Then live freely on 80%.',ref:{label:'Pareto Principle applied to finance — Bankrate',url:'https://www.themuse.com/advice/80-20-rule'},cats:[{name:'Savings First',pct:20,color:'#10B981'},{name:'All Expenses',pct:80,color:'#3B82F6'}],pills:[{l:'20% Save First',bg:'#D1FAE5',c:'#065F46'},{l:'80% Spend freely',bg:'#EFF6FF',c:'#1E3A8A'}]},
+  {id:'40302010',name:'40/30/20/10 (MY)',level:'mod',levelLabel:'Malaysia-focused',desc:'4-bucket method popular with Malaysian financial planners. Splits emergency separately from savings.',ref:{label:'EPF My Money Matters 2.0 & RinggitPlus',url:'https://ringgitplus.com/en/blog/the-experts-corner/the-50-30-20-budget-rule-for-malaysians.html'},cats:[{name:'Essentials',pct:40,color:'#18B981'},{name:'Lifestyle',pct:30,color:'#3B82F6'},{name:'Savings',pct:20,color:'#10B981'},{name:'Emergency / Invest',pct:10,color:'#F59E0B'}],pills:[{l:'40% Essentials',bg:'#E0F7EF',c:'#064232'},{l:'30% Lifestyle',bg:'#EFF6FF',c:'#1E3A8A'},{l:'20% Savings',bg:'#D1FAE5',c:'#065F46'},{l:'10% Emergency',bg:'#FEF3C7',c:'#78350F'}]},
 ];
 
-/* ── STATE ── */
-function uid(){ return '_'+Math.random().toString(36).slice(2,9); }
-let state = {
-  salary: 5000,
-  mode: 'manual',
-  ruleId: '503020',
-  cats: RULES[0].cats.map(c=>({id:uid(),...c}))
-};
-let chart = null;
-let cpTarget = null;
+/* ══ STATE ══ */
+function uid(){return '_'+Math.random().toString(36).slice(2,9)}
+function today(){return new Date().toISOString().slice(0,10)}
 
-/* ── HELPERS ── */
-function total(){ return state.cats.reduce((s,c)=>s+(c.pct||0),0); }
-function activeRule(){ return RULES.find(r=>r.id===state.ruleId)||RULES[0]; }
+const DEFAULT_CATS = RULES[0].cats.map(c=>({id:uid(),...c}));
+let state = {salary:5000,mode:'manual',ruleId:'503020',cats:[...DEFAULT_CATS],viewMonth:new Date().toISOString().slice(0,7)};
+let expenses = [];
+let pieChart=null, dashChart=null, cpTarget=null;
 
-/* ── MODE ── */
+/* ══ LOCALSTORAGE ══ */
+function save(){
+  localStorage.setItem('gf_state', JSON.stringify(state));
+  localStorage.setItem('gf_expenses', JSON.stringify(expenses));
+}
+function load(){
+  try{
+    const s=localStorage.getItem('gf_state');
+    const e=localStorage.getItem('gf_expenses');
+    if(s)state={...state,...JSON.parse(s)};
+    if(e)expenses=JSON.parse(e);
+    if(!state.viewMonth)state.viewMonth=new Date().toISOString().slice(0,7);
+  }catch(err){}
+}
+
+/* ══ NAVIGATION ══ */
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const tabs=[...document.querySelectorAll('.ntab')];
+  const map={budget:0,tracker:1,dashboard:2};
+  tabs[map[id]].classList.add('active');
+  if(id==='tracker'){renderTracker();}
+  if(id==='dashboard'){renderDashboard();}
+}
+
+/* ══ MODAL ══ */
+function openModal(){
+  // populate category select
+  const sel=document.getElementById('expCat');
+  sel.innerHTML='';
+  const cats=[...new Set([...state.cats.map(c=>c.name),'Food','Transport','Bills','Lifestyle','Others'])];
+  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  document.getElementById('expDate').value=today();
+  document.getElementById('expAmount').value='';
+  document.getElementById('expNote').value='';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('expAmount').focus(),100);
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+function closeModalOutside(e){if(e.target===document.getElementById('modalOverlay'))closeModal();}
+
+/* ══ ADD EXPENSE ══ */
+function addExpense(){
+  const amt=parseFloat(document.getElementById('expAmount').value);
+  if(!amt||amt<=0){document.getElementById('expAmount').focus();return;}
+  const exp={
+    id:uid(),
+    amount:amt,
+    category:document.getElementById('expCat').value,
+    date:document.getElementById('expDate').value||today(),
+    note:document.getElementById('expNote').value.trim()
+  };
+  expenses.unshift(exp);
+  save();
+  closeModal();
+  renderTracker();
+  renderDashboard();
+  // toast
+  showToast('Expense saved ✓');
+}
+
+function delExpense(id){
+  expenses=expenses.filter(e=>e.id!==id);
+  save();
+  renderTracker();
+  renderDashboard();
+}
+
+function showToast(msg){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,.3);transition:opacity .3s';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300)},2000);
+}
+
+/* ══ MONTH NAV ══ */
+function changeMonth(d){
+  const [y,m]=state.viewMonth.split('-').map(Number);
+  const dt=new Date(y,m-1+d,1);
+  state.viewMonth=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+  save();
+  renderTracker();
+  renderDashboard();
+}
+
+function monthLabel(ym){
+  const [y,m]=ym.split('-');
+  return new Date(+y,+m-1,1).toLocaleDateString('en-MY',{month:'long',year:'numeric'});
+}
+
+function monthExpenses(){
+  return expenses.filter(e=>e.date&&e.date.startsWith(state.viewMonth));
+}
+
+/* ══ BUDGET PAGE ══ */
+function total(){return state.cats.reduce((s,c)=>s+(c.pct||0),0)}
+
 function setMode(m){
-  state.mode = m;
+  state.mode=m;
   document.getElementById('tabManual').classList.toggle('active',m==='manual');
   document.getElementById('tabSmart').classList.toggle('active',m==='smart');
-  document.getElementById('rulePicker').style.display = m==='smart'?'block':'none';
-  document.getElementById('ruleBanner').style.display  = m==='smart'?'block':'none';
-  document.getElementById('addRow').style.display      = m==='manual'?'flex':'none';
-  if(m==='smart') applyRule(state.ruleId);
-  render();
+  document.getElementById('rulePicker').style.display=m==='smart'?'block':'none';
+  document.getElementById('ruleBanner').style.display=m==='smart'?'block':'none';
+  document.getElementById('addCatRow').style.display=m==='manual'?'flex':'none';
+  if(m==='smart')applyRule(state.ruleId);
+  else renderBudget();
+  save();
 }
 
 function applyRule(id){
-  state.ruleId = id;
-  const rule = RULES.find(r=>r.id===id)||RULES[0];
-  state.cats = rule.cats.map(c=>({id:uid(),...c}));
-  renderRulePicker();
-  renderRuleBanner();
-  render();
+  state.ruleId=id;
+  const rule=RULES.find(r=>r.id===id)||RULES[0];
+  state.cats=rule.cats.map(c=>({id:uid(),...c}));
+  renderRulePicker();renderRuleBanner();renderBudget();save();
 }
 
-/* ── CATEGORY ACTIONS ── */
 function addCat(){
-  const inp=document.getElementById('newName');
-  const name=inp.value.trim();
-  if(!name){inp.focus();return;}
+  const inp=document.getElementById('newCatName');
+  const name=inp.value.trim();if(!name){inp.focus();return;}
   const used=state.cats.map(c=>c.color);
   const color=PAL.find(p=>!used.includes(p))||PAL[state.cats.length%PAL.length];
   state.cats.push({id:uid(),name,pct:0,color});
-  inp.value='';
-  render();
+  inp.value='';save();renderBudget();
   setTimeout(()=>{const a=document.querySelectorAll('.cat-name-inp');if(a.length)a[a.length-1].focus();},50);
 }
-function delCat(id){ state.cats=state.cats.filter(c=>c.id!==id); render(); }
-function updatePct(id,v){ const c=state.cats.find(x=>x.id===id);if(c)c.pct=Math.min(100,Math.max(0,parseInt(v)||0));render(); }
-function updateName(id,v){ const c=state.cats.find(x=>x.id===id);if(c)c.name=v;renderChart();renderLegend(); }
+function delCat(id){state.cats=state.cats.filter(c=>c.id!==id);save();renderBudget();}
+function updatePct(id,v){const c=state.cats.find(x=>x.id===id);if(c)c.pct=Math.min(100,Math.max(0,parseInt(v)||0));save();renderBudget();}
+function updateCatName(id,v){const c=state.cats.find(x=>x.id===id);if(c)c.name=v;save();renderPieChart();renderLegend();}
 
 /* ── COLOR PICKER ── */
 function openCp(id,el){
   cpTarget=id;
-  const pop=document.getElementById('cpop');
-  pop.innerHTML='';
+  const pop=document.getElementById('cpop');pop.innerHTML='';
   const cur=state.cats.find(x=>x.id===id);
   PAL.forEach(hex=>{
     const sw=document.createElement('div');
     sw.className='csw'+(cur&&cur.color===hex?' sel':'');
     sw.style.background=hex;
-    sw.onclick=()=>{ const c=state.cats.find(x=>x.id===cpTarget);if(c){c.color=hex;render();}pop.classList.remove('open'); };
+    sw.onclick=()=>{const c=state.cats.find(x=>x.id===cpTarget);if(c){c.color=hex;save();renderBudget();}pop.classList.remove('open');};
     pop.appendChild(sw);
   });
   const r=el.getBoundingClientRect();
@@ -347,37 +631,26 @@ function openCp(id,el){
   pop.style.left=Math.max(8,r.left+window.scrollX-60)+'px';
   pop.classList.add('open');
 }
-document.addEventListener('click',e=>{ const pop=document.getElementById('cpop');if(!e.target.classList.contains('cat-dot')&&!pop.contains(e.target))pop.classList.remove('open'); });
+document.addEventListener('click',e=>{const pop=document.getElementById('cpop');if(!e.target.classList.contains('cat-dot')&&!pop.contains(e.target))pop.classList.remove('open');});
 
 /* ── RENDER RULE PICKER ── */
 function renderRulePicker(){
-  const el=document.getElementById('ruleList');
-  el.innerHTML='';
+  const el=document.getElementById('ruleList');el.innerHTML='';
   RULES.forEach(rule=>{
     const div=document.createElement('div');
-    div.className='rule-card'+(state.ruleId===rule.id?' selected':'');
-    div.innerHTML=`
-      <div class="rule-head">
-        <span class="rule-name">${rule.name}</span>
-        <span class="rule-tag ${rule.level}">${rule.levelLabel}</span>
-      </div>
-      <div class="rule-desc">${rule.desc}</div>
-      <div class="rule-pills">${rule.pills.map(p=>`<span class="rule-pill" style="background:${p.bg};color:${p.color}">${p.label}</span>`).join('')}</div>
-      <div class="rule-ref">Source: <a href="${rule.ref.url}" target="_blank">${rule.ref.label}</a></div>`;
+    div.className='rule-card'+(state.ruleId===rule.id?' sel':'');
+    div.innerHTML=`<div class="rule-head"><span class="rule-name">${rule.name}</span><span class="rule-tag tag-${rule.level}">${rule.levelLabel}</span></div>
+    <div class="rule-desc">${rule.desc}</div>
+    <div class="rule-pills">${rule.pills.map(p=>`<span class="rule-pill" style="background:${p.bg};color:${p.c}">${p.l}</span>`).join('')}</div>
+    <div class="rule-ref">📚 <a href="${rule.ref.url}" target="_blank" rel="noopener">${rule.ref.label}</a></div>`;
     div.onclick=()=>applyRule(rule.id);
     el.appendChild(div);
   });
 }
 
-/* ── RENDER RULE BANNER ── */
 function renderRuleBanner(){
-  const rule=activeRule();
-  const el=document.getElementById('ruleBanner');
-  el.innerHTML=`<div class="active-rule-banner">
-    <div class="arb-head">Using: ${rule.name}</div>
-    <div>${rule.desc}</div>
-    <div class="arb-ref" style="margin-top:4px">Reference: <a href="${rule.ref.url}" target="_blank" rel="noopener">${rule.ref.label} ↗</a></div>
-  </div>`;
+  const rule=RULES.find(r=>r.id===state.ruleId)||RULES[0];
+  document.getElementById('ruleBanner').innerHTML=`<div class="rule-banner"><b>Using: ${rule.name}</b> — ${rule.desc} <a href="${rule.ref.url}" target="_blank">View reference ↗</a></div>`;
 }
 
 /* ── RENDER CATS ── */
@@ -385,145 +658,234 @@ function renderCats(){
   const list=document.getElementById('catList');
   const manual=state.mode==='manual';
   list.innerHTML='';
-  if(!state.cats.length){ list.innerHTML='<div class="empty">No categories yet. Add one below!</div>'; return; }
+  if(!state.cats.length){list.innerHTML='<div class="empty-cats">No categories. Add one below!</div>';return;}
   state.cats.forEach(cat=>{
     const rm=state.salary?Math.round(state.salary*cat.pct/100):0;
-    const div=document.createElement('div');
-    div.className='cat-item';
-    div.innerHTML=`
-      <div class="cat-top">
-        <div class="cat-dot" style="background:${cat.color}" title="Change colour" data-id="${cat.id}"></div>
-        <input class="cat-name-inp" type="text" value="${cat.name.replace(/"/g,'&quot;')}"
-          ${!manual?'readonly':''} data-id="${cat.id}" placeholder="Category name"/>
-        <span class="cat-rm">RM ${rm.toLocaleString()}</span>
-        ${manual?`<button class="cat-del" data-id="${cat.id}" title="Remove">×</button>`:''}
-      </div>
-      <div class="cat-bot">
-        <input type="range" class="cat-slider" min="0" max="100" step="1" value="${cat.pct}"
-          style="accent-color:${cat.color};flex:1" ${!manual?'disabled':''} data-id="${cat.id}"/>
-        <input type="number" class="pct-box" min="0" max="100" value="${cat.pct}"
-          ${!manual?'readonly':''} data-id="${cat.id}"/>
-        <span class="pct-sym">%</span>
-      </div>`;
+    const div=document.createElement('div');div.className='cat-item';
+    div.innerHTML=`<div class="cat-top">
+      <div class="cat-dot" style="background:${cat.color}" title="Change colour" data-id="${cat.id}"></div>
+      <input class="cat-name-inp" type="text" value="${cat.name.replace(/"/g,'&quot;')}" ${!manual?'readonly':''} data-id="${cat.id}" placeholder="Category name"/>
+      <span class="cat-rm">RM ${rm.toLocaleString()}</span>
+      ${manual?`<button class="cat-del" data-id="${cat.id}">×</button>`:''}
+    </div>
+    <div class="cat-bot">
+      <input type="range" class="cat-slider" min="0" max="100" step="1" value="${cat.pct}" style="accent-color:${cat.color};flex:1" ${!manual?'disabled':''} data-id="${cat.id}"/>
+      <input type="number" class="pct-box" min="0" max="100" value="${cat.pct}" ${!manual?'readonly':''} data-id="${cat.id}"/>
+      <span class="pct-sym">%</span>
+    </div>`;
     list.appendChild(div);
   });
   list.querySelectorAll('.cat-dot').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();openCp(el.dataset.id,el);}));
-  list.querySelectorAll('.cat-name-inp').forEach(el=>el.addEventListener('input',e=>updateName(e.target.dataset.id,e.target.value)));
+  list.querySelectorAll('.cat-name-inp').forEach(el=>el.addEventListener('input',e=>updateCatName(e.target.dataset.id,e.target.value)));
   list.querySelectorAll('.cat-slider').forEach(el=>el.addEventListener('input',e=>updatePct(e.target.dataset.id,e.target.value)));
-  list.querySelectorAll('.pct-box').forEach(el=>{
-    el.addEventListener('input',e=>updatePct(e.target.dataset.id,e.target.value));
-    el.addEventListener('change',e=>updatePct(e.target.dataset.id,e.target.value));
-  });
+  list.querySelectorAll('.pct-box').forEach(el=>{el.addEventListener('input',e=>updatePct(e.target.dataset.id,e.target.value));el.addEventListener('change',e=>updatePct(e.target.dataset.id,e.target.value));});
   list.querySelectorAll('.cat-del').forEach(el=>el.addEventListener('click',e=>delCat(e.target.dataset.id)));
 }
 
-/* ── RENDER TOTAL ── */
 function renderTotal(){
   const tot=total();
-  const badge=document.getElementById('badge');
+  const badge=document.getElementById('totalBadge');
   const fill=document.getElementById('progFill');
   badge.textContent=tot+'%';
   badge.className='badge '+(tot>100?'over':tot===100?'ok':'warn');
   fill.style.width=Math.min(tot,100)+'%';
-  fill.style.background=tot>100?'#D85A30':tot===100?'#1D9E75':'#BA7517';
+  fill.style.background=tot>100?'#EF4444':tot===100?'#18B981':'#F59E0B';
 }
 
-/* ── RENDER CHART ── */
-function renderChart(){
+function renderPieChart(){
   const active=state.cats.filter(c=>c.pct>0);
   const data=active.map(c=>c.pct);
   const colors=active.map(c=>c.color);
   const labels=active.map(c=>c.name||'—');
-  if(!chart){
-    chart=new Chart(document.getElementById('pie'),{
+  if(!pieChart){
+    pieChart=new Chart(document.getElementById('pieChart'),{
       type:'doughnut',
-      data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:3,borderColor:'#f7f8f5',hoverOffset:6}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{
-          const rm=state.salary?Math.round(state.salary*ctx.parsed/100):0;
-          return `  ${ctx.parsed}%  →  RM ${rm.toLocaleString()}`;
-        }}}}}
+      data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:3,borderColor:'#F9FAFB',hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const rm=state.salary?Math.round(state.salary*ctx.parsed/100):0;return `  ${ctx.parsed}%  →  RM ${rm.toLocaleString()}`;},}}}}
     });
   } else {
-    chart.data.labels=labels;
-    chart.data.datasets[0].data=data;
-    chart.data.datasets[0].backgroundColor=colors;
-    chart.update();
+    pieChart.data.labels=labels;
+    pieChart.data.datasets[0].data=data;
+    pieChart.data.datasets[0].backgroundColor=colors;
+    pieChart.update();
   }
 }
 
-/* ── RENDER LEGEND ── */
 function renderLegend(){
-  const sal=state.salary;
   document.getElementById('legend').innerHTML=state.cats.map(c=>{
-    const rm=sal?Math.round(sal*c.pct/100):0;
-    return `<div class="legend-row">
-      <div class="legend-sq" style="background:${c.color}"></div>
-      <span class="legend-name">${c.name||'—'}</span>
-      <span class="legend-pct">${c.pct}%</span>
-      <span class="legend-rm">RM ${rm.toLocaleString()}</span>
+    const rm=state.salary?Math.round(state.salary*c.pct/100):0;
+    return `<div class="legend-row"><div class="legend-sq" style="background:${c.color}"></div><span class="legend-name">${c.name||'—'}</span><span class="legend-pct">${c.pct}%</span><span class="legend-rm">RM ${rm.toLocaleString()}</span></div>`;
+  }).join('');
+}
+
+function renderInsights(){
+  const sal=state.salary,tot=total();
+  const lc=n=>n.toLowerCase();
+  const find=(...keys)=>state.cats.find(c=>keys.some(k=>lc(c.name).includes(k)));
+  const pct=cat=>cat?(cat.pct||0):0;
+  const savPct=pct(find('sav')),invPct=pct(find('invest')),emPct=pct(find('emerg')),commPct=pct(find('commit','loan','rent','bill','car','hire','expense'));
+  const msgs=[];
+  if(!sal)msgs.push({t:'warn',h:'Enter your salary',b:'Add your monthly salary to see RM values and insights.'});
+  else if(tot>100)msgs.push({t:'danger',h:'Over 100%!',b:`Reduce ${tot-100}% from your categories to balance.`});
+  else if(tot<100){const rm=Math.round(sal*(100-tot)/100);msgs.push({t:'warn',h:'Unallocated funds',b:`RM ${rm.toLocaleString()} (${100-tot}%) is not assigned yet.`});}
+  else msgs.push({t:'ok',h:'Perfectly balanced ✓',b:'All 100% allocated. Your budget is complete!'});
+  if(sal&&savPct>0&&savPct<20)msgs.push({t:'warn',h:'Low savings rate',b:`Saving ${savPct}%. Aim for at least 20% for a healthy financial buffer.`});
+  else if(sal&&savPct>=20)msgs.push({t:'ok',h:'Strong savings ✓',b:`${savPct}% in savings — you're building real financial security.`});
+  else if(sal&&savPct===0&&tot===100)msgs.push({t:'danger',h:'No savings!',b:'Add a Savings category. Even 10% compounds significantly over time.'});
+  if(sal&&commPct>40)msgs.push({t:'danger',h:'High commitments',b:`${commPct}% in fixed costs is risky. Try to keep it under 40%.`});
+  if(sal&&invPct===0&&tot===100)msgs.push({t:'warn',h:'No investment',b:'Even 5–10% into EPF top-up, ASB, or unit trusts grows significantly over time.'});
+  if(sal&&emPct===0&&tot===100)msgs.push({t:'warn',h:'No emergency fund',b:'3–5% monthly builds 3–6 months safety net. Unexpected things happen.'});
+  if(sal&&(savPct+invPct+emPct)>=30&&tot===100)msgs.push({t:'ok',h:'Wealth-building mode 🚀',b:`${savPct+invPct+emPct}% going toward your future. Keep it up!`});
+  const sec=document.getElementById('insSection'),grid=document.getElementById('insGrid');
+  if(!msgs.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  grid.innerHTML=msgs.map(m=>`<div class="ins-card ${m.t}"><div class="ins-head">${m.h}</div>${m.b}</div>`).join('');
+}
+
+function renderBudget(){renderCats();renderPieChart();renderLegend();renderTotal();renderInsights();}
+
+/* ══ TRACKER PAGE ══ */
+function renderTracker(){
+  document.getElementById('monthLabel').textContent=monthLabel(state.viewMonth);
+  renderExpList();
+  renderBVA();
+}
+
+function renderExpList(){
+  const list=document.getElementById('expList');
+  const exps=monthExpenses();
+  if(!exps.length){
+    list.innerHTML=`<div class="no-expenses"><span class="no-exp-emoji">🧾</span>No expenses for ${monthLabel(state.viewMonth)}.<br>Tap <b>+ Add</b> to log your first one.</div>`;
+    return;
+  }
+  list.innerHTML=exps.map(e=>{
+    const icon=getCatIcon(e.category);
+    const color=getCatColor(e.category);
+    const dateStr=new Date(e.date+'T00:00:00').toLocaleDateString('en-MY',{day:'numeric',month:'short'});
+    return `<div class="expense-item">
+      <div class="exp-icon" style="background:${color}22;color:${color}">${icon}</div>
+      <div class="exp-info">
+        <div class="exp-cat">${e.category}</div>
+        ${e.note?`<div class="exp-note">${e.note}</div>`:''}
+      </div>
+      <div class="exp-right">
+        <div class="exp-amount">RM ${e.amount.toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <div class="exp-date">${dateStr}</div>
+      </div>
+      <button class="exp-del" onclick="delExpense('${e.id}')" title="Delete">×</button>
     </div>`;
   }).join('');
 }
 
-/* ── RENDER INSIGHTS ── */
-function renderInsights(){
-  const sal=state.salary;
-  const tot=total();
-  const lc=n=>n.toLowerCase();
-  const find=(...keys)=>state.cats.find(c=>keys.some(k=>lc(c.name).includes(k)));
-  const pct=cat=>cat?(cat.pct||0):0;
-  const savPct=pct(find('sav'));
-  const invPct=pct(find('invest'));
-  const emPct =pct(find('emerg'));
-  const commPct=pct(find('commit','loan','rent','bill','car','hire','expense'));
-  const msgs=[];
+function renderBVA(){
+  const el=document.getElementById('bvaList');
+  if(!state.cats.length){el.innerHTML='<div style="color:var(--ink3);font-size:13px">Set your budget categories first.</div>';return;}
+  const exps=monthExpenses();
+  const spent={};
+  exps.forEach(e=>{
+    const cat=state.cats.find(c=>c.name.toLowerCase()===e.category.toLowerCase())||{name:e.category};
+    const key=cat.name;
+    spent[key]=(spent[key]||0)+e.amount;
+  });
+  const sal=state.salary||0;
+  el.innerHTML=state.cats.map(cat=>{
+    const planned=Math.round(sal*cat.pct/100);
+    const actual=Math.round(spent[cat.name]||0);
+    const ratio=planned>0?actual/planned:actual>0?1:0;
+    const pctUsed=Math.min(Math.round(ratio*100),100);
+    const over=actual>planned;
+    const warn=!over&&ratio>=0.8;
+    let status='',statusClass='ok';
+    if(over){status=`Over by RM ${(actual-planned).toLocaleString()}`;statusClass='over';}
+    else if(warn){status=`${100-pctUsed}% remaining — almost there`;statusClass='warn';}
+    else if(actual>0){status=`RM ${(planned-actual).toLocaleString()} remaining`;statusClass='ok';}
+    else{status='No expenses logged yet';statusClass='ok';}
+    return `<div class="bva-item">
+      <div class="bva-header">
+        <div class="bva-cat"><div class="bva-dot" style="background:${cat.color}"></div>${cat.name}</div>
+        <div class="bva-numbers"><b>RM ${actual.toLocaleString()}</b> / RM ${planned.toLocaleString()}</div>
+      </div>
+      <div class="bva-track">
+        <div class="bva-planned" style="width:100%;background:${cat.color}"></div>
+        <div class="bva-actual" style="width:${pctUsed}%;background:${over?'#EF4444':warn?'#F59E0B':cat.color}"></div>
+      </div>
+      ${status?`<div class="bva-status ${statusClass}">${status}</div>`:''}
+    </div>`;
+  }).join('<div class="divider"></div>');
+}
 
-  if(!sal){
-    msgs.push({t:'warn',h:'Enter your salary',b:'Add your monthly salary above to see RM values and insights.'});
-  } else if(tot>100){
-    msgs.push({t:'danger',h:'Over 100%!',b:`Reduce ${tot-100}% from your categories to balance your budget.`});
-  } else if(tot<100){
-    const rm=Math.round(sal*(100-tot)/100);
-    msgs.push({t:'warn',h:'Unallocated funds',b:`RM ${rm.toLocaleString()} (${100-tot}%) is not assigned — put it somewhere!`});
+/* ══ DASHBOARD PAGE ══ */
+function renderDashboard(){
+  const exps=monthExpenses();
+  const totalSpent=exps.reduce((s,e)=>s+e.amount,0);
+  const sal=state.salary||0;
+  const totalBudget=sal;
+  const remaining=totalBudget-totalSpent;
+  document.getElementById('shTotal').textContent=`RM ${totalSpent.toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  document.getElementById('shSub').textContent=`of RM ${totalBudget.toLocaleString()} budgeted`;
+  const remEl=document.getElementById('shRemain');
+  remEl.textContent=`RM ${Math.abs(remaining).toLocaleString('en-MY',{minimumFractionDigits:0})}${remaining<0?' overspent':''}`;
+  remEl.className='sh-mini-val '+(remaining<0?'red':'green');
+  document.getElementById('shCount').textContent=`${exps.length} item${exps.length!==1?'s':''}`;
+
+  // Category spending chart
+  const catSpend={};
+  exps.forEach(e=>{catSpend[e.category]=(catSpend[e.category]||0)+e.amount;});
+  const sortedCats=Object.entries(catSpend).sort((a,b)=>b[1]-a[1]);
+  const chartLabels=sortedCats.map(([k])=>k);
+  const chartData=sortedCats.map(([,v])=>v);
+  const chartColors=sortedCats.map(([k])=>getCatColor(k));
+
+  if(!dashChart){
+    dashChart=new Chart(document.getElementById('dashChart'),{
+      type:'bar',
+      data:{labels:chartLabels,datasets:[{data:chartData,backgroundColor:chartColors,borderRadius:6,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`  RM ${ctx.raw.toLocaleString('en-MY',{minimumFractionDigits:2})}`}}},scales:{x:{grid:{display:false},ticks:{font:{family:'DM Mono'}}},y:{grid:{display:false}}}}
+    });
   } else {
-    msgs.push({t:'ok',h:'Perfectly balanced ✓',b:'All 100% allocated. Your budget is complete.'});
+    dashChart.data.labels=chartLabels;
+    dashChart.data.datasets[0].data=chartData;
+    dashChart.data.datasets[0].backgroundColor=chartColors;
+    dashChart.update();
   }
 
-  if(sal&&savPct>0&&savPct<20) msgs.push({t:'warn',h:'Low savings rate',b:`You're saving ${savPct}% — financial advisors recommend at least 20% (EPF + personal savings combined).`});
-  else if(sal&&savPct>=20)       msgs.push({t:'ok',  h:'Strong savings',   b:`${savPct}% in savings builds real financial security over time.`});
-  else if(sal&&savPct===0&&tot===100) msgs.push({t:'danger',h:'No savings!',b:'Add a Savings category. Even 10% compounded over 10 years makes a massive difference.'});
+  // Smart insights
+  const sal2=state.salary||0;
+  const lc=n=>n.toLowerCase();
+  const find=(...keys)=>state.cats.find(c=>keys.some(k=>lc(c.name).includes(k)));
+  const budgeted=cat=>cat?Math.round(sal2*(cat.pct||0)/100):0;
+  const actualFor=name=>exps.filter(e=>lc(e.category)===lc(name)).reduce((s,e)=>s+e.amount,0);
+  const msgs=[];
 
-  if(sal&&commPct>40) msgs.push({t:'danger',h:'High fixed commitments',b:`${commPct}% in fixed costs limits your flexibility. Try to keep total commitments under 40%.`});
+  if(!exps.length){msgs.push({t:'ok',h:'No expenses yet',b:`Start logging to see how your spending compares to your RM ${sal2.toLocaleString()} budget.`});}
+  else{
+    if(totalSpent>sal2)msgs.push({t:'danger',h:'Overspent this month!',b:`You've spent RM ${(totalSpent-sal2).toLocaleString()} more than your salary.`});
+    else if(totalSpent/sal2>0.85)msgs.push({t:'warn',h:'Almost at limit',b:`Used ${Math.round(totalSpent/sal2*100)}% of budget. Be careful the rest of the month.`});
+    else msgs.push({t:'ok',h:'On track ✓',b:`Spent ${Math.round(totalSpent/sal2*100)}% of budget. You have RM ${remaining.toLocaleString()} left.`});
 
-  if(sal&&invPct===0&&tot===100)  msgs.push({t:'warn',h:'No investment slice',b:'Consider 5–10% toward EPF top-up, ASB, or unit trusts — compound growth is powerful.'});
-  if(sal&&emPct===0&&tot===100)   msgs.push({t:'warn',h:'No emergency fund',b:'3–6 months of expenses as emergency fund protects you from unexpected events.'});
-  if(sal&&(savPct+invPct+emPct)>=30&&tot===100) msgs.push({t:'ok',h:'Wealth-building mode',b:`${savPct+invPct+emPct}% going toward your future. You're on the right track!`});
-
-  const sec=document.getElementById('insSection');
-  const grid=document.getElementById('insGrid');
-  if(!msgs.length){sec.style.display='none';return;}
-  sec.style.display='block';
-  grid.innerHTML=msgs.map(m=>`<div class="ins ${m.t}"><div class="ins-head">${m.h}</div><div>${m.b}</div></div>`).join('');
+    const savCat=find('sav');
+    if(savCat){const b=budgeted(savCat),a=actualFor(savCat.name);if(a<b*0.5)msgs.push({t:'warn',h:'Low actual savings',b:`Saved RM ${a.toLocaleString()} vs planned RM ${b.toLocaleString()}. Try to hit your target.`});}
+    const lifeCat=find('lifestyle','want','entertainment');
+    if(lifeCat){const b=budgeted(lifeCat),a=actualFor(lifeCat.name);if(a>b)msgs.push({t:'warn',h:'Lifestyle overspend',b:`Spent RM ${(a-b).toLocaleString()} more on lifestyle than planned. Worth reviewing.`});}
+  }
+  document.getElementById('dashInsights').innerHTML=msgs.map(m=>`<div class="ins-card ${m.t}" style="margin-bottom:8px"><div class="ins-head">${m.h}</div>${m.b}</div>`).join('');
 }
 
-/* ── MAIN RENDER ── */
-function render(){
-  renderCats();
-  renderChart();
-  renderLegend();
-  renderTotal();
-  renderInsights();
+/* ══ INIT ══ */
+load();
+document.getElementById('salInp').value=state.salary||5000;
+document.getElementById('salInp').addEventListener('input',e=>{state.salary=parseFloat(e.target.value)||0;save();renderBudget();});
+document.getElementById('newCatName').addEventListener('keydown',e=>{if(e.key==='Enter')addCat();});
+
+if(state.mode==='smart'){
+  document.getElementById('tabManual').classList.remove('active');
+  document.getElementById('tabSmart').classList.add('active');
+  document.getElementById('rulePicker').style.display='block';
+  document.getElementById('ruleBanner').style.display='block';
+  document.getElementById('addCatRow').style.display='none';
+  renderRulePicker();renderRuleBanner();
 }
-
-/* ── EVENTS ── */
-document.getElementById('salInp').addEventListener('input',e=>{state.salary=parseFloat(e.target.value)||0;render();});
-document.getElementById('newName').addEventListener('keydown',e=>{if(e.key==='Enter')addCat();});
-
-/* ── INIT ── */
-renderRulePicker();
-renderRuleBanner();
-render();
+renderBudget();
 </script>
 </body>
 </html>
